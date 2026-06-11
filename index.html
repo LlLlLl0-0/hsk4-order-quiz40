@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>HSK四级排列顺序题（共40题）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: '微软雅黑', 'Segoe UI', Roboto, -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #2c3e50;
+            overflow: hidden;
+            height: 100vh;
+            width: 100%;
+            position: fixed;
+        }
+        .main-layout {
+            display: flex;
+            height: 100%;
+            width: 100%;
+        }
+        .slide-container {
+            flex: 1;
+            position: relative;
+            background: #ecf0f1;
+            overflow: hidden;
+            width: 100%;
+        }
+        .slide {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease;
+            background: white;
+            padding: 15px 18px 100px 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .scroll-placeholder {
+            height: 85px;
+            width: 100%;
+            flex-shrink: 0;
+        }
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            z-index: 10;
+        }
+        .side-nav {
+            width: 140px;
+            background: rgba(44, 62, 80, 0.95);
+            backdrop-filter: blur(8px);
+            color: white;
+            padding: 12px 8px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            z-index: 25;
+            box-shadow: -2px 0 12px rgba(0,0,0,0.2);
+            height: 100%;
+            flex-shrink: 0;
+            min-height: 0;
+        }
+        .nav-category {
+            border-bottom: 1px solid #5d6e7e;
+            padding-bottom: 8px;
+        }
+        .nav-category h4 {
+            font-size: 13px;
+            margin-bottom: 10px;
+            text-align: center;
+            color: #f1c40f;
+        }
+        .question-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: space-between;
+        }
+        .q-link {
+            background: #2c3e50;
+            border: 1px solid #5d6e7e;
+            border-radius: 30px;
+            padding: 4px 0;
+            font-size: 13px;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            text-align: center;
+            flex: 0 0 calc(25% - 6px);
+            white-space: normal;
+        }
+        .q-link.visited {
+            background: #27ae60;
+            border-color: #2ecc71;
+        }
+        .q-link:active {
+            transform: scale(0.96);
+        }
+        @media (max-width: 700px) {
+            .side-nav { width: 110px; }
+            .q-link { flex: 0 0 calc(33.33% - 6px); font-size: 11px; padding: 3px 0; }
+            .nav-category h4 { font-size: 11px; }
+        }
+        .answer-badge {
+            position: fixed;
+            top: 10px;
+            right: 160px;
+            background: #2c3e50;
+            color: #f1c40f;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            font-family: monospace;
+            z-index: 20;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+        .source {
+            position: fixed;
+            bottom: 8px;
+            right: 160px;
+            font-size: 11px;
+            color: #aaa;
+            background: rgba(255,255,240,0.9);
+            padding: 2px 8px;
+            border-radius: 16px;
+            font-family: monospace;
+            z-index: 20;
+            box-shadow: 0 0 2px rgba(0,0,0,0.1);
+        }
+        @media (max-width: 700px) {
+            .answer-badge { right: 120px; font-size: 14px; padding: 3px 8px; top: 8px; }
+            .source { right: 115px; font-size: 10px; bottom: 6px; }
+            .slide { padding-bottom: 95px; }
+            .scroll-placeholder { height: 75px; }
+        }
+        .q-header {
+            font-size: 22px;
+            font-weight: bold;
+            color: #1e6f3f;
+            border-left: 5px solid #1e6f3f;
+            padding-left: 12px;
+            margin-bottom: 16px;
+        }
+        .choice {
+            font-size: 20px;
+            line-height: 1.4;
+            margin: 10px 0;
+            background: #f8f9fc;
+            padding: 10px 14px;
+            border-radius: 14px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .choice-letter {
+            font-weight: bold;
+            color: #c0392b;
+            display: inline-block;
+            width: 38px;
+            font-size: 20px;
+        }
+        .correct-order {
+            background: #e8f5e9;
+            padding: 12px 16px;
+            border-radius: 16px;
+            margin: 12px 0;
+            border-left: 6px solid #2e7d32;
+        }
+        .correct-order p {
+            font-size: 18px;
+            margin: 5px 0;
+            line-height: 1.35;
+        }
+        .explanation {
+            background: #fff8e1;
+            padding: 10px 14px;
+            border-radius: 14px;
+            font-size: 17px;
+            color: #b45f06;
+            border-left: 4px solid #f39c12;
+            margin-top: 10px;
+            line-height: 1.4;
+        }
+        .nav-controls {
+            position: fixed;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(10px);
+            padding: 4px 12px;
+            border-radius: 40px;
+            z-index: 30;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+        .nav-controls button {
+            font-size: 13px;
+            padding: 4px 12px;
+            border: none;
+            background: #1e6f3f;
+            color: white;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .nav-controls span {
+            font-size: 13px;
+            color: white;
+        }
+        .category-card {
+            background: #f0f7ff;
+            border-radius: 20px;
+            padding: 14px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .category-card:active {
+            background: #e3f0fa;
+            transform: scale(0.99);
+        }
+        .category-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #1e466e;
+            border-left: 6px solid #f39c12;
+            padding-left: 12px;
+            margin-bottom: 10px;
+        }
+        .category-desc {
+            font-size: 17px;
+            line-height: 1.4;
+            margin: 8px 0;
+            color: #2c3e50;
+        }
+        .question-range {
+            background: #e9ecef;
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 16px;
+            margin-top: 8px;
+            font-family: '微软雅黑', 'Segoe UI', Roboto, sans-serif;
+            font-weight: normal;
+            letter-spacing: 0.5px;
+        }
+        @media (max-width: 480px) {
+            .choice { font-size: 18px; padding: 8px 12px; }
+            .choice-letter { width: 32px; font-size: 18px; }
+            .correct-order p { font-size: 16px; }
+            .explanation { font-size: 15px; }
+            .q-header { font-size: 20px; }
+            .category-title { font-size: 20px; }
+            .category-desc { font-size: 15px; }
+            .nav-controls button { font-size: 11px; padding: 3px 8px; }
+            .answer-badge { right: 110px; font-size: 13px; }
+            .source { right: 105px; font-size: 9px; }
+        }
+    </style>
+</head>
+<body>
+<div class="main-layout">
+    <div class="slide-container" id="slideContainer"></div>
+    <div class="side-nav" id="sideNav"></div>
+</div>
+<div class="nav-controls">
+    <button id="prevBtn">◀ 上一页</button>
+    <span id="pageIndicator">1 / 81</span>
+    <button id="nextBtn">下一页 ▶</button>
+    <button id="homeBtn">🏠 首页</button>
+</div>
+
+<script>
+    // 原页码映射
+    function getOrigLabel(origPage, origNo) {
+        return `L${origPage}-${origNo}`;
+    }
+
+    // 原始数据（原题号1-40）
+    const rawQuestions = {
+        1: { origPage:1, origNo:31, a:"茶不仅仅是一种饮料", b:"它在中国有着几千年的历史", c:"而且还是一种文化", answer:"ACB", expl:"A先说茶是饮料，C用“而且”补充也是文化，B再说它有历史。" },
+        2: { origPage:1, origNo:32, a:"所以我对她的印象很深", b:"她就对我特别热情", c:"第一次和王小姐见面", answer:"CBA", expl:"先第一次见面，再用“她”指代，最后“所以”得出印象深。" },
+        3: { origPage:1, origNo:33, a:"我觉得他很多地方都不错", b:"这一点是他吸引我的主要原因", c:"特别是脾气、性格很好", answer:"ACB", expl:"先总说不错，再具体说脾气性格好，最后用“这一点”指代说是主要原因。" },
+        4: { origPage:1, origNo:34, a:"它更需要两个人互相理解和接受", b:"结婚我认为只有爱情是远远不够的", c:"不但要接受他的优点，还要接受他的缺点", answer:"BAC", expl:"先提出观点（只有爱情不够），再用“它”指代结婚，最后用“不但…还”补充。" },
+        5: { origPage:2, origNo:31, a:"我慢慢适应了这里的生活", b:"来北京半年多了", c:"也交到了许多朋友", answer:"BAC", expl:"B先说来北京半年，A说适应，C用“也”补充交朋友。" },
+        6: { origPage:2, origNo:32, a:"这个城市的空气却好了很多", b:"昨天中午下了一小会儿雨", c:"虽然不大", answer:"BCA", expl:"B先说下雨，C说虽然不大，A用“却”说空气好了。" },
+        7: { origPage:2, origNo:33, a:"当大多数人都在关心你飞得高不高时", b:"这少数人，才是你的朋友", c:"只有少数人关心你飞得累不累", answer:"ACB", expl:"先说大多数人关心飞得高不高，再说少数人关心累不累，最后用“这少数人”指代说才是朋友。" },
+        8: { origPage:2, origNo:34, a:"只有朋友会在你最困难的时候帮助你", b:"但金钱却买不来友情", c:"尽管金钱是不可少的", answer:"CBA", expl:"C用“尽管”说金钱不可少，B用“但”转折说买不来友情，A说只有朋友帮忙。" },
+        9: { origPage:3, origNo:31, a:"时间太长也会影响健康", b:"医生说，午饭后不要马上睡午觉", c:"另外，午睡的时间不要过长", answer:"BCA", expl:"B先说不要马上睡，C用“另外”补充时间不长，A说时间太长影响健康。" },
+        10: { origPage:3, origNo:32, a:"不管在外面的世界遇到什么困难", b:"家都是我们心中最幸福的地方", c:"因为我们总是能够在家里找到爱", answer:"ABC", expl:"A先说不管什么困难，B说家最幸福，C用“因为”解释原因。" },
+        11: { origPage:3, origNo:33, a:"我觉得他这个人挺不错的", b:"这一点是他受大家欢迎的主要原因", c:"首先是他非常愿意帮助人", answer:"ACB", expl:"先总说不错，再具体说愿意帮助人，最后用“这一点”指代说是受欢迎原因。" },
+        12: { origPage:3, origNo:34, a:"首先，你要学好你的法律专业", b:"你想以后当一名律师吗", c:"其次，你要有一个好的身体", answer:"BAC", expl:"B先问想当律师吗，A用“首先”说学专业，C用“其次”说有好身体。" },
+        13: { origPage:4, origNo:31, a:"可是早上突然下起了大雨", b:"我本来准备今天上午和朋友一起去踢足球", c:"我们不得不改变了计划", answer:"BAC", expl:"B先说本来去踢球，A用“可是”转折说下大雨，C说改变计划。" },
+        14: { origPage:4, origNo:32, a:"我打算毕业以后", b:"为以后自己做生意积累一些经验", c:"先在叔叔开的公司里工作一段时间", answer:"ACB", expl:"按事情发展顺序：先说打算毕业后，再说先在叔叔公司工作，最后说目的是积累经验。" },
+        15: { origPage:4, origNo:33, a:"因为大家今年工作完成得非常好", b:"所以按照经理的要求，每人发8000元奖金", c:"另外每人还发给一个电脑", answer:"ABC", expl:"A说因为工作好，B用“所以”说发奖金，C用“另外”说发电脑。" },
+        16: { origPage:4, origNo:34, a:"意思是不管多远的路，都要从脚下这一步开始", b:"人们常说“千里之行，始于足下”", c:"也就是说，一切成功都是慢慢积累起来的", answer:"BAC", expl:"B先引用名言，A解释意思，C用“也就是说”总结。" },
+        17: { origPage:5, origNo:31, a:"另外，价格还便宜", b:"现在网上购物很流行", c:"你在网上买的东西会送到你办公室或者家里", answer:"BCA", expl:"B先说网上购物流行，C说送到家，A用“另外”说价格便宜。" },
+        18: { origPage:5, origNo:32, a:"这儿离地铁站很近，附近也有很多公共汽车站", b:"但房价可不便宜", c:"所以，别看房子有点儿旧", answer:"ACB", expl:"A先说交通方便，C用“所以”说别看房子旧，B用“但”说房价不便宜。" },
+        19: { origPage:5, origNo:33, a:"但我还是一眼就认出了他", b:"虽然毕业以后我们有20多年没见面了", c:"因为他的样子几乎没什么变化", answer:"BAC", expl:"B用“虽然”说20年没见，A用“但”说一眼认出，C用“因为”解释原因。" },
+        20: { origPage:5, origNo:34, a:"我打算送她一个", b:"妹妹很早之前就想买个照相机", c:"下个月一号正好她过生日", answer:"BCA", expl:"按因果顺序：妹妹想买相机，正好她过生日，所以打算送她一个。" },
+        21: { origPage:6, origNo:31, a:"现在只卖300块", b:"原价是现在的两倍多呢，我找一件您试试吧", c:"这种裙子今年非常流行，质量很好", answer:"CAB", expl:"先介绍裙子流行、质量好，再说现在只卖300块，最后说原价两倍多，建议试穿。" },
+        22: { origPage:6, origNo:32, a:"他是我大学时的同学", b:"毕业后我们就再也没联系过", c:"没想到中午我去取护照时竟然遇到他了", answer:"ABC", expl:"先介绍他是同学，然后说“我们”没联系，最后没想到遇到他。" },
+        23: { origPage:6, origNo:33, a:"但是他很诚实", b:"小关的脾气有时候是有点儿差", c:"是个值得相信的人", answer:"BAC", expl:"B先说小关脾气差，A用“但是”说很诚实，C说值得相信。" },
+        24: { origPage:6, origNo:34, a:"这种情况下，就需要及时交流", b:"两个人在一起，总会遇到问题", c:"如果不这样的话，关系就可能会越来越远", answer:"BAC", expl:"先说总会遇到问题，再用“这种情况”指代，说需要交流，否则关系会远。" },
+        25: { origPage:7, origNo:31, a:"我晚点儿才能回去，桌子上有早上没吃完的面包", b:"就先吃点儿", c:"冰箱里还有面条，你要是饿了", answer:"ACB", expl:"A先说晚点回去、桌上有面包，C用“还”说冰箱有面条、要是饿了，B说就先吃点儿。" },
+        26: { origPage:7, origNo:32, a:"如果你没有准备好", b:"它也会离开你去找别人", c:"那么就算机会走到了你面前", answer:"ACB", expl:"A用“如果”说没准备好，C说就算机会到面前，B说它也会离开。" },
+        27: { origPage:7, origNo:33, a:"嘴上就会马上说出来", b:"意思是说一个人心里有什么想法", c:"“心直口快”常用来说明人的性格", answer:"CBA", expl:"C先解释词语，B说明意思，A说结果嘴上就说出来。" },
+        28: { origPage:7, origNo:34, a:"秋冬季节，皮肤容易变得很干", b:"这是让很多人烦恼的事", c:"为了远离这个烦恼，我们要注意多喝水", answer:"ABC", expl:"先说皮肤干，再用“这”指代说是烦恼，最后用“这个烦恼”指代说要喝水。" },
+        29: { origPage:8, origNo:31, a:"小说《红楼梦》在中国非常有名", b:"只要是中国人", c:"我相信没有不知道它的", answer:"ABC", expl:"先说红楼梦有名，再说只要是中国人，最后说没有不知道的。" },
+        30: { origPage:8, origNo:32, a:"让阳光和新鲜的空气进入室内", b:"可以使您的心情变得更好", c:"早上起床后，打开窗户", answer:"CAB", expl:"先打开窗户才能让阳光空气进入，这样做了以后心情好。" },
+        31: { origPage:8, origNo:33, a:"也感谢他们这么多年来给我的爱", b:"有了女儿以后，我才知道做妈妈有多么不容易", c:"因此，我更加理解我的爸爸妈妈了", answer:"BCA", expl:"B说有了女儿知道妈妈不容易，C用“因此”说更理解爸妈，A用“也”说感谢他们的爱。" },
+        32: { origPage:8, origNo:34, a:"还与人的生活环境、经历等有关", b:"有人认为，年龄越大，经验就越丰富", c:"其实，经验不但与年龄有关", answer:"BCA", expl:"B先说一种观点，C用“其实”转折说不但与年龄有关，A用“还”说与环境等有关。" },
+        33: { origPage:9, origNo:31, a:"所以今天早上才告诉你", b:"可是又怕打扰你休息", c:"我本来想昨天晚上就通知你的", answer:"CBA", expl:"C说本来想昨晚通知，B用“可是”说怕打扰，A用“所以”说今天才告诉。" },
+        34: { origPage:9, origNo:32, a:"但过程比结果更重要", b:"而且你还年轻，一切都可以重新开始", c:"尽管这个计划失败了", answer:"CAB", expl:"C用“尽管”说计划失败，A用“但”说过程更重要，B用“而且”说年轻可重来。" },
+        35: { origPage:9, origNo:33, a:"至少我们努力过", b:"即使失败了也没关系", c:"机会来了，就该试一试", answer:"CBA", expl:"机会来了就该试一试，即使失败也没关系，至少我们努力过。" },
+        36: { origPage:9, origNo:34, a:"后来他见我做得很好，才慢慢改变了自己的看法", b:"我爱人当时反对我选择这个工作", c:"他觉得这个工作太辛苦了", answer:"BCA", expl:"先说爱人反对，再用“他”指代解释原因，最后用“他”继续说改变看法。" },
+        37: { origPage:10, origNo:31, a:"不过这里以前比较安静", b:"我对这里当然熟悉了，我家原来就住这儿附近", c:"不像现在人这么多", answer:"BAC", expl:"B先说熟悉这里，A用“不过”说以前安静，C说现在人多。" },
+        38: { origPage:10, origNo:32, a:"你也有这样的特点吗", b:"比如说，做事努力、对自己要求很高等", c:"调查发现，优秀的人都有一些共同点", answer:"CBA", expl:"先说优秀的人有共同点，再举例，最后用“这样的特点”指代提问。" },
+        39: { origPage:10, origNo:33, a:"不管哪个同事遇到了困难", b:"他都愿意帮忙", c:"小王确实是个热情的人", answer:"CAB", expl:"C先评价小王热情，A说不管哪个同事困难，B说他都愿意帮忙。" },
+        40: { origPage:10, origNo:34, a:"那种既兴奋又紧张的感觉到现在还很难忘记", b:"由于那是我第一次参加国际比赛", c:"大学三年级时，我参加了世界大学生汉语比赛", answer:"CBA", expl:"C先说大学三年级参赛，B用“由于”说是第一次，A说感觉难忘。" }
+    };
+
+    // 最终分类（用户指定）
+    const pronounIds = [2,3,4,7,11,24,28,36,38];
+    const conjIds = [1,5,6,8,9,10,12,13,15,16,17,18,19,23,25,26,27,29,31,32,33,34,39,40];
+    const logicIds = [14,20,21,22,30,35,37];
+
+    // 排序
+    pronounIds.sort((a,b)=>a-b);
+    conjIds.sort((a,b)=>a-b);
+    logicIds.sort((a,b)=>a-b);
+    const orderedIds = [...pronounIds, ...conjIds, ...logicIds];
+
+    // 构建新数据数组
+    const questions = [];
+    let newNo = 1;
+    for (let origId of orderedIds) {
+        const raw = rawQuestions[origId];
+        questions.push({
+            newNo: newNo++,
+            origPage: raw.origPage,
+            origNo: raw.origNo,
+            a: raw.a,
+            b: raw.b,
+            c: raw.c,
+            answer: raw.answer,
+            explanation: raw.expl,
+            category: pronounIds.includes(origId) ? "pronoun" : (conjIds.includes(origId) ? "conj" : "logic")
+        });
+    }
+
+    // 构建幻灯片
+    let slidesHTML = '';
+    let questionFirstPageIndices = [];
+    let slideIdx = 0;
+
+    // 首页
+    slidesHTML += `
+        <div class="slide" id="slide_${slideIdx}">
+            <div class="q-header" style="border-left-color: #3498db;">📚 排列顺序题 三大类型</div>
+            <div class="category-card" data-cat="pronoun">
+                <div class="category-title">🔖 代词类</div>
+                <div class="category-desc"><strong>解题思路：</strong> 代词（它、这、那、其中、这样、他们等）指代前文。先出现名词，后出现代词。</div>
+                <div class="question-range">📌 新题号 1 → 9</div>
+            </div>
+            <div class="category-card" data-cat="conj">
+                <div class="category-title">🔗 关联/提示词类</div>
+                <div class="category-desc"><strong>解题思路：</strong> 注意“因为/所以、但是、然而、否则、其实、相反、因此、结果、既然、只要/就、即使/也、不仅/还、却、而、如果、另外、首先…其次”等。</div>
+                <div class="question-range">📌 新题号 10 → 33</div>
+            </div>
+            <div class="category-card" data-cat="logic">
+                <div class="category-title">🧠 逻辑类</div>
+                <div class="category-desc"><strong>解题思路：</strong> 无明显代词或关联词，按常识排序：时间先后、因果、总分、步骤、问题→解决办法。</div>
+                <div class="question-range">📌 新题号 34 → 40</div>
+            </div>
+            <div class="explanation" style="margin-top: 16px;">💡 点击卡片进入对应分类第一题；右侧题号变色表示已看过（刷新后重置）。</div>
+            <div class="source">分类说明页</div>
+            <div class="scroll-placeholder"></div>
+        </div>
+    `;
+    slideIdx++;
+
+    for (let i = 0; i < questions.length; i++) {
+        const q = questions[i];
+        const origLabel = getOrigLabel(q.origPage, q.origNo);
+        const aT = q.a, bT = q.b, cT = q.c;
+        const ans = q.answer;
+        const expl = q.explanation;
+        const orderMap = { 'A': aT, 'B': bT, 'C': cT };
+        const correctSentences = ans.split('').map(ch => `${ch} ${orderMap[ch]}`);
+        questionFirstPageIndices.push(slideIdx);
+        // 题目页
+        slidesHTML += `
+            <div class="slide" id="slide_${slideIdx}" data-qno="${q.newNo}">
+                <div class="q-header">第${q.newNo}题</div>
+                <div class="choice"><span class="choice-letter">A</span> ${aT}</div>
+                <div class="choice"><span class="choice-letter">B</span> ${bT}</div>
+                <div class="choice"><span class="choice-letter">C</span> ${cT}</div>
+                <div class="source">${origLabel}</div>
+                <div class="scroll-placeholder"></div>
+            </div>
+        `;
+        slideIdx++;
+        // 答案页
+        slidesHTML += `
+            <div class="slide" id="slide_${slideIdx}">
+                <div class="answer-badge">答案：${ans}</div>
+                <div class="q-header">第${q.newNo}题</div>
+                <div class="choice"><span class="choice-letter">A</span> ${aT}</div>
+                <div class="choice"><span class="choice-letter">B</span> ${bT}</div>
+                <div class="choice"><span class="choice-letter">C</span> ${cT}</div>
+                <div class="correct-order">
+                    <p><strong>正确顺序：</strong></p>
+                    ${correctSentences.map(s => `<p>${s}</p>`).join('')}
+                </div>
+                <div class="explanation">📖 ${expl}</div>
+                <div class="source">${origLabel}</div>
+                <div class="scroll-placeholder"></div>
+            </div>
+        `;
+        slideIdx++;
+    }
+
+    document.getElementById('slideContainer').innerHTML = slidesHTML;
+
+    // 已看过记录
+    let visitedSet = new Set();
+    function markVisited(qno) {
+        if (!visitedSet.has(qno)) {
+            visitedSet.add(qno);
+            updateSideNavVisited();
+        }
+    }
+    function updateSideNavVisited() {
+        document.querySelectorAll('.q-link').forEach(link => {
+            const qno = parseInt(link.getAttribute('data-qno'), 10);
+            if (visitedSet.has(qno)) link.classList.add('visited');
+            else link.classList.remove('visited');
+        });
+    }
+
+    // 右侧导航栏构建
+    function buildSideNav() {
+        const pronounNos = [1,2,3,4,5,6,7,8,9];
+        const conjNos = Array.from({length: 24}, (_,i) => i+10);
+        const logicNos = [34,35,36,37,38,39,40];
+        
+        let html = `
+            <div class="nav-category"><h4>📌 代词类</h4><div class="question-links" id="pronoun-links"></div></div>
+            <div class="nav-category"><h4>🔗 关联/提示词类</h4><div class="question-links" id="conj-links"></div></div>
+            <div class="nav-category"><h4>🧠 逻辑类</h4><div class="question-links" id="logic-links"></div></div>
+        `;
+        document.getElementById('sideNav').innerHTML = html;
+        
+        const addLinks = (containerId, arr) => {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            arr.forEach(no => {
+                let span = document.createElement('span');
+                span.className = 'q-link';
+                span.textContent = no;
+                span.setAttribute('data-qno', no);
+                span.onclick = () => jumpToQuestion(no);
+                container.appendChild(span);
+            });
+        };
+        addLinks('pronoun-links', pronounNos);
+        addLinks('conj-links', conjNos);
+        addLinks('logic-links', logicNos);
+        updateSideNavVisited();
+    }
+
+    // 导航逻辑
+    const slides = document.querySelectorAll('.slide');
+    let currentIdx = 0;
+    const total = slides.length;
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const homeBtn = document.getElementById('homeBtn');
+    const pageIndicator = document.getElementById('pageIndicator');
+
+    function showSlide(index) {
+        if (index < 0) index = 0;
+        if (index >= total) index = total - 1;
+        slides.forEach((s, i) => {
+            if (i === index) s.classList.add('active');
+            else s.classList.remove('active');
+        });
+        pageIndicator.innerText = `${index+1} / ${total}`;
+        currentIdx = index;
+        const activeSlide = slides[index];
+        const qno = activeSlide.getAttribute('data-qno');
+        if (qno) markVisited(parseInt(qno, 10));
+    }
+
+    function jumpToQuestion(questionNo) {
+        const idx = questionNo - 1;
+        if (idx >= 0 && idx < questionFirstPageIndices.length) {
+            showSlide(questionFirstPageIndices[idx]);
+        }
+    }
+
+    function nextSlide() { showSlide(currentIdx + 1); }
+    function prevSlide() { showSlide(currentIdx - 1); }
+    function goHome() { showSlide(0); }
+
+    prevBtn.onclick = prevSlide;
+    nextBtn.onclick = nextSlide;
+    homeBtn.onclick = goHome;
+
+    // 首页卡片点击
+    const homeSlideEl = slides[0];
+    if (homeSlideEl) {
+        const cards = homeSlideEl.querySelectorAll('.category-card');
+        if (cards.length >= 3) {
+            cards[0].onclick = () => jumpToQuestion(1);
+            cards[1].onclick = () => jumpToQuestion(10);
+            cards[2].onclick = () => jumpToQuestion(34);
+        }
+    }
+
+    // 点击空白翻页
+    const container = document.querySelector('.slide-container');
+    container.addEventListener('click', (e) => {
+        let target = e.target;
+        let ignore = false;
+        let el = target;
+        while (el && el !== container) {
+            if (el.tagName === 'BUTTON' || el.classList?.contains('q-link') || el.classList?.contains('category-card') || el.classList?.contains('nav-controls') || el.id === 'prevBtn' || el.id === 'nextBtn' || el.id === 'homeBtn') {
+                ignore = true;
+                break;
+            }
+            el = el.parentElement;
+        }
+        if (!ignore) nextSlide();
+    });
+
+    buildSideNav();
+    showSlide(0);
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') prevSlide();
+        if (e.key === 'ArrowRight') nextSlide();
+    });
+</script>
+</body>
+</html>
